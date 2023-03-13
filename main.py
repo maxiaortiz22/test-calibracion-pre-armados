@@ -3,6 +3,7 @@ import customtkinter
 from tkinter import *
 from code.informe import informe
 from code.test_warble_tone.warble_tone import FcError
+import sounddevice as sd
 
 def calibracion() -> None:
 
@@ -12,6 +13,12 @@ def calibracion() -> None:
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el dispositivo de entrada:
+    input_microphone = input_device.get()
+    sd.default.device = str(input_microphone)
+    #Especifico el canal de medición:
+    input_microphone = input_device.get()
+    sd.default.device = str(input_microphone)
 
     progress.set(0.2)
     progress_label.set(f"Grbando las calibraciones!")
@@ -24,144 +31,131 @@ def calibracion() -> None:
     progress_label.set(f"Calibraciones grabadas!")
     root.update_idletasks()
 
-def linealidad_aerea() -> None:
+def hearingLevel() -> None:
 
-    global result_linealidad_aerea
+    global result_hearingLevel
     global progress_label
     global root
 
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el dispositivo de entrada:
+    input_microphone = input_device.get()
+    sd.default.device = str(input_microphone)
+    #Frecuencia:
+    freq = int(hearing_level_frec.get())
 
     progress.set(0.2)
-    progress_label.set(f"Test linealidad aérea...")
+    progress_label.set(f"Test hearing level...")
     root.update_idletasks()
 
-    result_linealidad_aerea = tests.get_linealidad_aerea()
+    result_hearingLevel = tests.get_linealidad_aerea()
 
     progress.set(1)
     progress_label.set(f"Test grabado!")
     root.update_idletasks()
 
-def linealidad_osea() -> None:
+def narrowBand() -> None:
 
-    global result_linealidad_osea
+    global result_narrowBand
     global progress_label
     global root
 
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el dispositivo de entrada:
+    input_microphone = input_device.get()
+    sd.default.device = str(input_microphone)
+    #Frecuencia:
+    freq = int(narrow_band_frec.get())
 
     progress.set(0.2)
-    progress_label.set(f"Test linealidad ósea...")
+    progress_label.set(f"Test narrow band...")
     root.update_idletasks()
 
-    result_linealidad_osea = tests.get_linealidad_osea()
+    result_narrowBand = tests.get_linealidad_osea()
 
     progress.set(0.2)
     progress_label.set(f"Test grabado!")
     root.update_idletasks()
 
-def tono_pulsante() -> None:
+def linearityTest() -> None:
 
-    global reslut_tono_pulsante
+    global reslut_linearityTest
     global progress_label
     global root
 
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el dispositivo de entrada:
+    input_microphone = input_device.get()
+    sd.default.device = str(input_microphone)
+    #nievel:
+    level = int(linearity_level.get())
 
     progress.set(0.2)
-    progress_label.set(f"Test tono pulsante...")
+    progress_label.set(f"Test de linealidad...")
     root.update_idletasks()
 
-    reslut_tono_pulsante = tests.get_pulse_tone()
+    reslut_linearityTest = tests.get_pulse_tone()
 
     progress.set(1)
     progress_label.set(f"Test grabado!")
     root.update_idletasks()
 
-def warble_tone() -> None:
+def pulseTone() -> None:
 
-    global result_warble_tone
+    global result_pulseTone
     global progress_label
     global root
 
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el dispositivo de entrada:
+    input_microphone = input_device.get()
+    sd.default.device = str(input_microphone)
+
+    progress.set(0.2)
+    progress_label.set(f"Test pulse tone...")
+    root.update_idletasks()
+
+    result_pulseTone = tests.get_warble_tone()
+
+    progress.set(1)
+    progress_label.set(f"Test grabado!")
+    root.update_idletasks()
+
+def warbleTone() -> None:
+
+    global result_warbleTone
+    global progress_label
+    global root
+
+    #Especifico el auricular a utilizar:
+    auricular = tipo_auricular.get()
+    tests.set_auricular(auricular)
+    #Especifico el dispositivo de entrada:
+    input_microphone = input_device.get()
+    sd.default.device = str(input_microphone)
+    #Frecuencia:
+    freq = int(warble_tone_frec.get())
 
     progress.set(0.2)
     progress_label.set(f"Test warble tone...")
     root.update_idletasks()
 
-    result_warble_tone = tests.get_warble_tone()
-
-    progress.set(1)
-    progress_label.set(f"Test grabado!")
-    root.update_idletasks()
-
-def nivel_vocal() -> None:
-
-    global result_nivel_vocal
-    global progress_label
-    global root
-
-    #Especifico el auricular a utilizar:
-    auricular = tipo_auricular.get()
-    tests.set_auricular(auricular)
-
-    progress.set(0.2)
-    progress_label.set(f"Test nivel vocal...")
-    root.update_idletasks()
-
-    result_nivel_vocal = tests.get_nivel_vocal()
-
-    progress.set(1)
-    progress_label.set(f"Test grabado!")
-    root.update_idletasks()
-
-def ruido() -> None:
-
-    global result_ruido
-    global progress_label
-    global root
-
-    #Especifico el auricular a utilizar:
-    auricular = tipo_auricular.get()
-    tests.set_auricular(auricular)
-
-    progress.set(0.2)
-    progress_label.set(f"Test ruido...")
-    root.update_idletasks()
-
-    result_ruido = tests.get_ruido()
-
-    progress.set(1)
-    progress_label.set(f"Test grabado!")
-    root.update_idletasks()
-
-def on_off_time() -> None:
-
-    global result_on_off
-    global progress_label
-    global root
-
-    progress.set(0.2)
-    progress_label.set(f"Test On/Off time...")
-    root.update_idletasks()
-    
-    result_on_off = tests.get_on_off_time()
+    result_warbleTone = tests.get_nivel_vocal()
 
     progress.set(1)
     progress_label.set(f"Test grabado!")
     root.update_idletasks()
     
 
-def gen_informe() -> None:
+def genInforme() -> None:
 
     global progress_label
     global root
@@ -171,13 +165,11 @@ def gen_informe() -> None:
     calibracion_usada = input('Calibración utilizada: ')
     id_informe = input('ID del informe: ')
 
-    informe.gen_informe(result_linealidad_aerea,
-                        result_linealidad_osea,
-                        reslut_tono_pulsante,
-                        result_warble_tone,
-                        result_nivel_vocal,
-                        result_ruido,
-                        result_on_off,
+    informe.gen_informe(result_hearingLevel,
+                        result_narrowBand,
+                        reslut_linearityTest,
+                        result_pulseTone,
+                        result_warbleTone,
                         version_app,
                         celular,
                         calibracion_usada,
@@ -195,6 +187,12 @@ if __name__ == '__main__':
     sr = 44100
     tests = audio_tests.Tests(sr)
 
+    #Obtengo los dispositivos de entrada disponibles:
+    input_devices = []
+    for device in sd.query_devices():
+        if 'Input' in device['name']:
+            input_devices.append(device['name'])
+
     global root
 
     customtkinter.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
@@ -205,10 +203,16 @@ if __name__ == '__main__':
     root.geometry("670x580")
     root.iconbitmap('logo.ico')
 
+    recomendacion_entrada = customtkinter.CTkLabel(root, text='Seleccione el dispositivo de entrada:')
+    recomendacion_entrada.grid(row=0, column=0, pady=5, padx=10)
+    input_device = customtkinter.CTkOptionMenu(root, values=input_devices)
+    input_device.grid(row=1, column=0, pady=5, padx=10)
+    #tipo_auricular.set("Supraural (ej: JBL600)")
+
     recomendacion0 = customtkinter.CTkLabel(root, text='Seleccione el tipo de auricular:')
     recomendacion0.grid(row=0, column=1, pady=5, padx=10)
     tipo_auricular = customtkinter.CTkOptionMenu(root, values=["Supraural (ej: JBL600)", "Circumaural (ej: JBL750)", "Vincha osea"])
-    tipo_auricular.grid(row=2, column=1, pady=5, padx=10)
+    tipo_auricular.grid(row=1, column=1, pady=5, padx=10)
     tipo_auricular.set("Supraural (ej: JBL600)")
 
     recomendacion1 = customtkinter.CTkLabel(root, text='Calibrar cada vez que mueva la ganancia')
@@ -230,30 +234,30 @@ if __name__ == '__main__':
     recomendacion1_test.grid(row=6, column=2, pady=5, padx=10)
 
     #De este mismo voy a sacar el Frequency Accuracy Test:
-    hearing_level = customtkinter.CTkButton(root, text="Nivel auditivo", command=linealidad_osea)
+    hearing_level = customtkinter.CTkButton(root, text="Nivel auditivo", command=hearingLevel)
     hearing_level.grid(row=7, column=0, pady=5, padx=10)
 
     hearing_level_frec = customtkinter.CTkOptionMenu(root, values=["125", "250", "500", "750", "1000", "1500",
                                                                  "2000", "3000", "4000", "6000", "8000"])
     hearing_level_frec.grid(row=7, column=2, pady=5, padx=10)
 
-    narrow_band = customtkinter.CTkButton(root, text="Nivel de banda estrecha", command=linealidad_aerea)
+    narrow_band = customtkinter.CTkButton(root, text="Nivel de banda estrecha", command=narrowBand)
     narrow_band.grid(row=8, column=0, pady=5, padx=10)
 
     narrow_band_frec = customtkinter.CTkOptionMenu(root, values=["125", "250", "500", "750", "1000", "1500",
                                                                  "2000", "3000", "4000", "6000", "8000"])
     narrow_band_frec.grid(row=8, column=2, pady=5, padx=10)
 
-    linearity = customtkinter.CTkButton(root, text="Linealidad", command=on_off_time)
+    linearity = customtkinter.CTkButton(root, text="Linealidad", command=linearityTest)
     linearity.grid(row=9, column=0, pady=5, padx=10)
 
     linearity_level = customtkinter.CTkOptionMenu(root, values=["65 dBHL", "60 dBHL", "50 dBHL", "45 dBHL"])
-    linearity_level.grid(row=8, column=2, pady=5, padx=10)
+    linearity_level.grid(row=9, column=2, pady=5, padx=10)
 
-    record_tono_pulsante = customtkinter.CTkButton(root, text="Tono pulsante", command=tono_pulsante)
+    record_tono_pulsante = customtkinter.CTkButton(root, text="Tono pulsante", command=pulseTone)
     record_tono_pulsante.grid(row=10, column=0, pady=5, padx=10)
 
-    record_warble_tone = customtkinter.CTkButton(root, text="Warble tone", command=warble_tone)
+    record_warble_tone = customtkinter.CTkButton(root, text="Warble tone", command=warbleTone)
     record_warble_tone.grid(row=11, column=0, pady=5, padx=10)
 
     warble_tone_frec = customtkinter.CTkOptionMenu(root, values=["125", "250", "500", "750", "1000", "1500",
@@ -270,7 +274,7 @@ if __name__ == '__main__':
     progress.grid(row=14, column=1, pady=5, padx=10)
     progress.set(0)
 
-    calculate = customtkinter.CTkButton(root, text="Informe", command=gen_informe)
+    calculate = customtkinter.CTkButton(root, text="Informe", command=genInforme)
     calculate.grid(row=15, column=1, pady=5, padx=10)
 
     root.mainloop()

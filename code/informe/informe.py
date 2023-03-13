@@ -23,13 +23,11 @@ class PDF(FPDF):
         # Page number
         self.cell(0, 10, 'Página ' + str(self.page_no()) + '/{nb}', 0, 0, 'R')
 
-def gen_informe(result_linealidad_aerea,
-                result_linealidad_osea,
-                reslut_tono_pulsante,
-                result_warble_tone,
-                result_nivel_vocal,
-                result_ruido,
-                result_on_off,
+def gen_informe(result_hearingLevel,
+                result_narrowBand,
+                reslut_linearityTest,
+                result_pulseTone,
+                result_warbleTone,
                 version_app,
                 celular,
                 calibracion_usada,
