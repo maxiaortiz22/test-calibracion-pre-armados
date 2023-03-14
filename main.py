@@ -17,8 +17,8 @@ def calibracion() -> None:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
     #Especifico el canal de medición:
-    input_microphone = input_device.get()
-    sd.default.device = str(input_microphone)
+    channel_selected = channel.get()
+    tests.set_channel(channel_selected)
 
     progress.set(0.2)
     progress_label.set(f"Grbando las calibraciones!")
@@ -40,6 +40,9 @@ def hearingLevel() -> None:
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el canal de medición:
+    channel_selected = channel.get()
+    tests.set_channel(channel_selected)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
@@ -65,6 +68,9 @@ def narrowBand() -> None:
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el canal de medición:
+    channel_selected = channel.get()
+    tests.set_channel(channel_selected)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
@@ -90,6 +96,9 @@ def linearityTest() -> None:
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el canal de medición:
+    channel_selected = channel.get()
+    tests.set_channel(channel_selected)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
@@ -115,6 +124,9 @@ def pulseTone() -> None:
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el canal de medición:
+    channel_selected = channel.get()
+    tests.set_channel(channel_selected)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
@@ -138,6 +150,9 @@ def warbleTone() -> None:
     #Especifico el auricular a utilizar:
     auricular = tipo_auricular.get()
     tests.set_auricular(auricular)
+    #Especifico el canal de medición:
+    channel_selected = channel.get()
+    tests.set_channel(channel_selected)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)

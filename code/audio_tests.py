@@ -4,37 +4,58 @@ from array import array
 import numpy as np
 import pyaudio
 import sounddevice as sd
-from .test_linealidad import linealidad
+from .test_hearing_level import hearing_level
+from .test_narrow_band import narrow_band
+from .test_linearity import linearity
 from .test_pulse_tone import pulse_tone
-from .test_respuesta_en_frecuencia import rta_frec
-from .test_ruido import ruido
 from .test_warble_tone import warble_tone
-from .test_nivel_vocal import nivel_vocal
-from .test_on_off import on_off
 import time
 import pandas as pd
 
 class Tests():
     def __init__(self, sr):
 
-        #Parámetros del detector de silencio:
-        self.THRESHOLD: int = 20#30 #500 el original
-        self.CHUNK_SIZE_silence: int = 128
-        self.FORMAT_silence = pyaudio.paInt32
-        self.RATE_silence: int = 22050
-
         #Parámetros para los tests:
         self.sr = sr
-        self.cal: list = []
+        self.cal_izq: list = []
+        self.cal_der: list = []
         self.auricular: str = ''
         self.freqs_auri: list = [125, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000]
-        self.freqs_osea: list = [125, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000]
+        self.freqs_osea: list = [250, 500, 750, 1000, 1500, 2000, 3000, 4000]
+
+        #Inicializo los resultados de los tests:
+        self.hearing_level_results = {"Izquierdo": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                      "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan},
+                                      "Derecho": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                      "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan}}
+        
+        self.narrow_band_results = {"Izquierdo": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                    "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan},
+                                    "Derecho": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                    "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan}}
+        
+        self.linearity_results = {"Izquierdo": {"65 dBHL": np.nan, "60 dBHL": np.nan, "50 dBHL": np.nan, "45 dBHL": np.nan},
+                                    "Derecho": {"65 dBHL": np.nan, "60 dBHL": np.nan, "50 dBHL": np.nan, "45 dBHL": np.nan}}
+        
+        self.pulse_tone_results = {"Izquierdo": {'Rise time': np.nan, 'Fall time': np.nan, 'On time': np.nan, 'On/Off time': np.nan},
+                                   "Derecho": {'Rise time': np.nan, 'Fall time': np.nan, 'On time': np.nan, 'On/Off time': np.nan}}
+
+        self.warble_tone_results = {"Izquierdo": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                    "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan},
+                                    "Derecho": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                    "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan}}
 
     def set_auricular(self, auricular: str) -> None:
         self.auricular = auricular
     
     def get_auricular(self) -> str:
         return self.auricular
+    
+    def set_channel(self, channel: str) -> None:
+        self.channel = channel
+
+    def get_channel(self) -> str:
+        return self.channel
 
     def record_calibration(self) -> None:
 
@@ -47,64 +68,123 @@ class Tests():
         NIVEL_DBHL_AURI: int = 65
         NIVEL_DBHL_OSEA: int = 30
 
-        cal = []
+        cal_izq, cal_der = [], []
 
-        if self.auricular == 'Supraural (ej: JBL600)':
-            comp = supraural_comp #Compensación para supraural
+        if self.channel == 'Izquierdo':
+            if self.auricular == 'Supraural (ej: JBL600)':
+                comp = supraural_comp #Compensación para supraural
 
-            for i, freq in enumerate(self.freqs_auri):
+                for i, freq in enumerate(self.freqs_auri):
 
-                print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
-                cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
-                rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
+                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
-                print('Tono grabado!')
+                    print('Tono grabado!')
 
-                cal.append(rms_1Pa)
+                    cal_izq.append(rms_1Pa)
 
-                time.sleep(5)
+                    time.sleep(5)
+                
+                print('Calibración Supraural cargada!')
+                self.cal_izq = cal_izq
+
+            elif self.auricular == "Circumaural (ej: JBL750)":
+                comp = circumaural_comp #Compensación para circumaural
+
+                for i, freq in enumerate(self.freqs_auri):
+
+                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
+
+                    print('Tono grabado!')
+
+                    cal_izq.append(rms_1Pa)
+
+                    time.sleep(5)
+                
+                print('Calibración Circumaural cargada!')
+                self.cal_izq = cal_izq
+
+            elif self.auricular == "Vincha osea":
+                comp = osea_comp #Compensación para vincha ósea
+
+                for i, freq in enumerate(self.freqs_osea):
+
+                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_OSEA, comp=comp[i])
+
+                    print('Tono grabado!')
+
+                    cal_izq.append(rms_1Pa)
+
+                    time.sleep(5)
+                
+                print('Calibración Ósea cargada!')
+                self.cal_izq = cal_izq
+                
+            else:
+                raise ValueError("No cargaste ningún auricular")
             
-            print('Calibración Supraural cargada!')
-            self.cal = cal
+        elif self.channel == 'Derecho':
+            if self.auricular == 'Supraural (ej: JBL600)':
+                comp = supraural_comp #Compensación para supraural
 
-        elif self.auricular == "Circumaural (ej: JBL750)":
-            comp = circumaural_comp #Compensación para circumaural
+                for i, freq in enumerate(self.freqs_auri):
 
-            for i, freq in enumerate(self.freqs_auri):
+                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
-                print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
-                cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
-                rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
+                    print('Tono grabado!')
 
-                print('Tono grabado!')
+                    cal_der.append(rms_1Pa)
 
-                cal.append(rms_1Pa)
+                    time.sleep(5)
+                
+                print('Calibración Supraural cargada!')
+                self.cal_der = cal_der
 
-                time.sleep(5)
-            
-            print('Calibración Circumaural cargada!')
-            self.cal = cal
+            elif self.auricular == "Circumaural (ej: JBL750)":
+                comp = circumaural_comp #Compensación para circumaural
 
-        elif self.auricular == "Vincha osea":
-            comp = osea_comp #Compensación para vincha ósea
+                for i, freq in enumerate(self.freqs_auri):
 
-            for i, freq in enumerate(self.freqs_osea):
+                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
-                print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
-                cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
-                rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_OSEA, comp=comp[i])
+                    print('Tono grabado!')
 
-                print('Tono grabado!')
+                    cal_der.append(rms_1Pa)
 
-                cal.append(rms_1Pa)
+                    time.sleep(5)
+                
+                print('Calibración Circumaural cargada!')
+                self.cal_der = cal_der
 
-                time.sleep(5)
-            
-            print('Calibración Ósea cargada!')
-            self.cal = cal
-            
-        else:
-            raise ValueError("No cargaste ningún auricular")
+            elif self.auricular == "Vincha osea":
+                comp = osea_comp #Compensación para vincha ósea
+
+                for i, freq in enumerate(self.freqs_osea):
+
+                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_OSEA, comp=comp[i])
+
+                    print('Tono grabado!')
+
+                    cal_der.append(rms_1Pa)
+
+                    time.sleep(5)
+                
+                print('Calibración Ósea cargada!')
+                self.cal_der = cal_der
+                
+            else:
+                raise ValueError("No cargaste ningún auricular")
 
     def get_linealidad_aerea(self):
         
@@ -269,35 +349,12 @@ class Tests():
         """
         Detect when a signal appears and start recording
         """
-        p_silence = pyaudio.PyAudio()
-        stream = p_silence.open(format=self.FORMAT_silence, channels=1, rate=self.RATE_silence,
-            input=True, output=True,
-            frames_per_buffer=self.CHUNK_SIZE_silence)
 
-        r_silence = array('h')
-
-        while 1:
-            # little endian, signed short
-            snd_data = array('h', stream.read(self.CHUNK_SIZE_silence))
-            if byteorder == 'big':
-                snd_data.byteswap()
-            r_silence.extend(snd_data)
-
-            silent = self.is_silent(snd_data)
-
-            if silent == False:
-                break #Mato el loop cuando paso el umbral
-
-
-        stream.stop_stream()
-        stream.close()
-        p_silence.terminate()
-
-        print('Señal detectada! Comienza grabación')
+        print('Comienza grabación!')
 
         myrecording = sd.rec(int(RECORD_SECONDS * self.sr), samplerate=self.sr,
                         channels=CHANNELS, blocking=True, dtype='float32')
         
         sd.wait()
 
-        return myrecording.flatten()
+        return myrecording
