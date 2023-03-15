@@ -5,6 +5,7 @@ import numpy as np
 import pyaudio
 import sounddevice as sd
 from .test_hearing_level import hearing_level
+from .test_frequency_accuracy import frequency_accuracy
 from .test_narrow_band import narrow_band
 from .test_linearity import linearity
 from .test_pulse_tone import pulse_tone
@@ -22,12 +23,18 @@ class Tests():
         self.auricular: str = ''
         self.freqs_auri: list = [125, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000]
         self.freqs_osea: list = [250, 500, 750, 1000, 1500, 2000, 3000, 4000]
+        self.tot_channels = 2
 
         #Inicializo los resultados de los tests:
         self.hearing_level_results = {"Izquierdo": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
                                       "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan},
                                       "Derecho": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
                                       "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan}}
+        
+        self.frequency_accuracy_results = {"Izquierdo": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                           "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan},
+                                           "Derecho": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
+                                           "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan}}
         
         self.narrow_band_results = {"Izquierdo": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
                                     "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan},
@@ -56,6 +63,32 @@ class Tests():
 
     def get_channel(self) -> str:
         return self.channel
+    
+    def set_freq(self, freq: int) -> None:
+        self.freq = freq
+
+    def get_freq(self) -> str:
+        return self.freq
+    
+    def set_level(self, level: str) -> None:
+        self.level = level
+
+    def get_level(self) -> str:
+        return self.level
+
+    def get_calibration(self) -> list[float]:
+
+        if self.channel == 'Izquierdo':
+            return self.cal_izq
+        elif self.channel == 'Derecho':
+            return self.cal_izq
+    
+    def split_channels(self, data: np.ndarray) -> np.ndarray:
+
+        if self.channel == 'Izquierdo':
+            return np.array([value[0] for value in data])
+        elif self.channel == 'Derecho':
+            return np.array([value[1] for value in data])
 
     def record_calibration(self) -> None:
 
@@ -76,7 +109,7 @@ class Tests():
 
                 for i, freq in enumerate(self.freqs_auri):
 
-                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
                     cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
@@ -86,7 +119,7 @@ class Tests():
 
                     time.sleep(5)
                 
-                print('Calibración Supraural cargada!')
+                print('Calibración Supraural de oído izquierdo cargada!')
                 self.cal_izq = cal_izq
 
             elif self.auricular == "Circumaural (ej: JBL750)":
@@ -94,7 +127,7 @@ class Tests():
 
                 for i, freq in enumerate(self.freqs_auri):
 
-                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
                     cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
@@ -104,7 +137,7 @@ class Tests():
 
                     time.sleep(5)
                 
-                print('Calibración Circumaural cargada!')
+                print('Calibración Circumaural de oído izquierdo cargada!')
                 self.cal_izq = cal_izq
 
             elif self.auricular == "Vincha osea":
@@ -112,7 +145,7 @@ class Tests():
 
                 for i, freq in enumerate(self.freqs_osea):
 
-                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
+                    print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
                     cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_OSEA, comp=comp[i])
 
@@ -122,7 +155,7 @@ class Tests():
 
                     time.sleep(5)
                 
-                print('Calibración Ósea cargada!')
+                print('Calibración Ósea de oído izquierdo cargada!')
                 self.cal_izq = cal_izq
                 
             else:
@@ -134,7 +167,7 @@ class Tests():
 
                 for i, freq in enumerate(self.freqs_auri):
 
-                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
                     cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
@@ -144,7 +177,7 @@ class Tests():
 
                     time.sleep(5)
                 
-                print('Calibración Supraural cargada!')
+                print('Calibración Supraural de oído derecho cargada!')
                 self.cal_der = cal_der
 
             elif self.auricular == "Circumaural (ej: JBL750)":
@@ -152,7 +185,7 @@ class Tests():
 
                 for i, freq in enumerate(self.freqs_auri):
 
-                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
+                    print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
                     cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
@@ -162,7 +195,7 @@ class Tests():
 
                     time.sleep(5)
                 
-                print('Calibración Circumaural cargada!')
+                print('Calibración Circumaural de oído derecho cargada!')
                 self.cal_der = cal_der
 
             elif self.auricular == "Vincha osea":
@@ -170,7 +203,7 @@ class Tests():
 
                 for i, freq in enumerate(self.freqs_osea):
 
-                    print(f'Esperando tono {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
+                    print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
                     cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_OSEA, comp=comp[i])
 
@@ -180,11 +213,37 @@ class Tests():
 
                     time.sleep(5)
                 
-                print('Calibración Ósea cargada!')
+                print('Calibración Ósea de oído derecho cargada!')
                 self.cal_der = cal_der
                 
             else:
                 raise ValueError("No cargaste ningún auricular")
+
+    def set_hearing_level(self) -> None:
+        
+        record_seconds = 2
+        print(f'Grabación de oído {self.channel} y frecuencia {self.freq} Hz')
+
+        data = self.record(RECORD_SECONDS=record_seconds, CHANNELS=self.tot_channels)
+
+        #Me quedo solo con el canal seleccionado:
+        data = self.split_channels(data)
+
+        #Obtengo el resultado de hearing level:
+        cal = self.get_calibration()
+        hl_value = hearing_level.hearing_level_value(cal, data, self.freq, self.auricular)
+
+        #Obtengo la frecuencia que más apareció:
+        freq = frequency_accuracy.get_max_freq(data, self.sr)
+
+        #Guardo resultados en el diccionario correspondiente:
+        self.hearing_level_results[self.channel][str(self.freq)] = hl_value
+        self.frequency_accuracy_results[self.channel][str(self.freq)] = freq
+
+        print(self.hearing_level_results)
+        print(self.frequency_accuracy_results)
+
+    ########## FUNCIONES VIEJAS ##########
 
     def get_linealidad_aerea(self):
         

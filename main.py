@@ -43,17 +43,18 @@ def hearingLevel() -> None:
     #Especifico el canal de medición:
     channel_selected = channel.get()
     tests.set_channel(channel_selected)
+    #Frecuencia:
+    freq = int(hearing_level_frec.get())
+    tests.set_freq(freq)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
-    #Frecuencia:
-    freq = int(hearing_level_frec.get())
 
     progress.set(0.2)
-    progress_label.set(f"Test hearing level...")
+    progress_label.set(f"Test hearing level {freq} Hz...")
     root.update_idletasks()
 
-    result_hearingLevel = tests.get_linealidad_aerea()
+    tests.set_hearing_level()
 
     progress.set(1)
     progress_label.set(f"Test grabado!")
@@ -71,11 +72,12 @@ def narrowBand() -> None:
     #Especifico el canal de medición:
     channel_selected = channel.get()
     tests.set_channel(channel_selected)
+    #Frecuencia:
+    freq = int(narrow_band_frec.get())
+    tests.set_freq(freq)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
-    #Frecuencia:
-    freq = int(narrow_band_frec.get())
 
     progress.set(0.2)
     progress_label.set(f"Test narrow band...")
@@ -99,11 +101,12 @@ def linearityTest() -> None:
     #Especifico el canal de medición:
     channel_selected = channel.get()
     tests.set_channel(channel_selected)
+    #nievel:
+    level = int(linearity_level.get())
+    tests.set_level(level)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
-    #nievel:
-    level = int(linearity_level.get())
 
     progress.set(0.2)
     progress_label.set(f"Test de linealidad...")
@@ -153,11 +156,12 @@ def warbleTone() -> None:
     #Especifico el canal de medición:
     channel_selected = channel.get()
     tests.set_channel(channel_selected)
+    #Frecuencia:
+    freq = int(warble_tone_frec.get())
+    tests.set_freq(freq)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
     sd.default.device = str(input_microphone)
-    #Frecuencia:
-    freq = int(warble_tone_frec.get())
 
     progress.set(0.2)
     progress_label.set(f"Test warble tone...")
