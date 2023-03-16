@@ -95,7 +95,7 @@ class Tests():
         #Compensaciones:
         supraural_comp: list = [45, 27, 13.5, 9, 7.5, 7.5, 9, 11.5, 12, 16, 15.5]
         circumaural_comp: list = [30.5, 18, 11, 6,  5.5, 5.5, 4.5, 2.5, 9.5, 17, 17.5]
-        osea_comp: list = [0, 8.4, 9.8, 11.2, 11.6, 13.5, 13.6, 16.3, 25, 0, 0]
+        osea_comp: list = [8.4, 9.8, 11.2, 11.6, 13.5, 13.6, 16.3, 25]
 
         #Niveles de referencia:
         NIVEL_DBHL_AURI: int = 65
@@ -110,7 +110,8 @@ class Tests():
                 for i, freq in enumerate(self.freqs_auri):
 
                     print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
-                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=self.tot_channels) #Grabo la calibración
+                    cal_record = self.split_channels(cal_record)
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
                     print('Tono grabado!')
@@ -128,7 +129,8 @@ class Tests():
                 for i, freq in enumerate(self.freqs_auri):
 
                     print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
-                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=self.tot_channels) #Grabo la calibración
+                    cal_record = self.split_channels(cal_record)
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
                     print('Tono grabado!')
@@ -146,7 +148,8 @@ class Tests():
                 for i, freq in enumerate(self.freqs_osea):
 
                     print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
-                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=self.tot_channels) #Grabo la calibración
+                    cal_record = self.split_channels(cal_record)
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_OSEA, comp=comp[i])
 
                     print('Tono grabado!')
@@ -168,7 +171,8 @@ class Tests():
                 for i, freq in enumerate(self.freqs_auri):
 
                     print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
-                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=self.tot_channels) #Grabo la calibración
+                    cal_record = self.split_channels(cal_record)
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
                     print('Tono grabado!')
@@ -186,7 +190,8 @@ class Tests():
                 for i, freq in enumerate(self.freqs_auri):
 
                     print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_AURI} dBHL')
-                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=self.tot_channels) #Grabo la calibración
+                    cal_record = self.split_channels(cal_record)
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_AURI, comp=comp[i])
 
                     print('Tono grabado!')
@@ -204,7 +209,8 @@ class Tests():
                 for i, freq in enumerate(self.freqs_osea):
 
                     print(f'Siguiente frecuencia {freq} Hz a {NIVEL_DBHL_OSEA} dBHL')
-                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=1) #Grabo la calibración
+                    cal_record = self.record(RECORD_SECONDS=2, CHANNELS=self.tot_channels ) #Grabo la calibración
+                    cal_record = self.split_channels(cal_record)
                     rms_1Pa = self.RMS_cal(cal_record, nivel_dBHL=NIVEL_DBHL_OSEA, comp=comp[i])
 
                     print('Tono grabado!')
