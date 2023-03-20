@@ -5,6 +5,29 @@ from code.informe import informe
 from code.test_warble_tone.warble_tone import FcError
 import sounddevice as sd
 
+def callback(indata, outdata, frames, time, status):
+    if status:
+        print(status)
+    outdata[:] = indata
+
+def retornoStream() -> None:
+
+    global progress_label
+    global root
+
+    duration = 5.0 # 5 segundos
+
+    progress.set(0.2)
+    progress_label.set(f"Retorno...")
+    root.update_idletasks()
+
+    with sd.Stream(channels=2, dtype='float32', callback=callback):
+        sd.sleep(int(duration * 1000))
+    
+    progress.set(1)
+    progress_label.set(f"")
+    root.update_idletasks()
+
 def calibracion() -> None:
 
     global progress_label
@@ -219,7 +242,7 @@ if __name__ == '__main__':
 
     root = customtkinter.CTk()
     root.title("Test de calibración de pre-armados")
-    root.geometry("670x580")
+    root.geometry("680x580")
     root.iconbitmap('logo.ico')
 
     recomendacion_entrada = customtkinter.CTkLabel(root, text='Seleccione el dispositivo de entrada:')
@@ -233,6 +256,11 @@ if __name__ == '__main__':
     tipo_auricular = customtkinter.CTkOptionMenu(root, values=["Supraural (ej: JBL600)", "Circumaural (ej: JBL750)", "Vincha osea"])
     tipo_auricular.grid(row=1, column=1, pady=5, padx=10)
     tipo_auricular.set("Supraural (ej: JBL600)")
+
+    recomendacion_retorno = customtkinter.CTkLabel(root, text='Escuchar retorno:')
+    recomendacion_retorno.grid(row=0, column=2, pady=5, padx=10)
+    retorno = customtkinter.CTkButton(root, text="Retorno", command=retornoStream)
+    retorno.grid(row=1, column=2, pady=5, padx=10)
 
     recomendacion1 = customtkinter.CTkLabel(root, text='Calibrar cada vez que mueva la ganancia')
     recomendacion1.grid(row=4, column=0, pady=5, padx=10)

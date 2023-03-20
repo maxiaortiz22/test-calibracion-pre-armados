@@ -98,7 +98,7 @@ class Tests():
         osea_comp: list = [8.4, 9.8, 11.2, 11.6, 13.5, 13.6, 16.3, 25]
 
         #Niveles de referencia:
-        NIVEL_DBHL_AURI: int = 65
+        NIVEL_DBHL_AURI: int = 85
         NIVEL_DBHL_OSEA: int = 30
 
         cal_izq, cal_der = [], []
