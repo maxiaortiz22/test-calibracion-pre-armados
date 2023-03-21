@@ -249,6 +249,25 @@ class Tests():
         print(self.hearing_level_results)
         print(self.frequency_accuracy_results)
 
+    def set_narrow_band(self) -> None:
+        
+        record_seconds = 2
+        print(f'Grabación de oído {self.channel} y frecuencia {self.freq} Hz')
+
+        data = self.record(RECORD_SECONDS=record_seconds, CHANNELS=self.tot_channels)
+
+        #Me quedo solo con el canal seleccionado:
+        data = self.split_channels(data)
+
+        #Obtengo el resultado de narrow band:
+        cal = self.get_calibration()
+        nb_value = narrow_band.narrow_band_level_value(cal, data, self.freq, self.auricular)
+
+        #Guardo resultados en el diccionario correspondiente:
+        self.narrow_band_results[self.channel][str(self.freq)] = nb_value
+
+        print(self.narrow_band_results)
+
     ########## FUNCIONES VIEJAS ##########
 
     def get_linealidad_aerea(self):

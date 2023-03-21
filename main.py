@@ -103,10 +103,10 @@ def narrowBand() -> None:
     sd.default.device = str(input_microphone)
 
     progress.set(0.2)
-    progress_label.set(f"Test narrow band...")
+    progress_label.set(f"Test narrow band {freq} Hz...")
     root.update_idletasks()
 
-    result_narrowBand = tests.get_linealidad_osea()
+    tests.set_narrow_band()
 
     progress.set(0.2)
     progress_label.set(f"Test grabado!")
