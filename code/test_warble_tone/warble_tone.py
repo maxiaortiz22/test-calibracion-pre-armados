@@ -55,8 +55,4 @@ def get_frec_mod(data: list[np.ndarray], fs: float) -> pd.DataFrame:
     data_df = {'Carrier frequency [Hz]': fc,
                'Modulating frequency [Hz]': fm}
 
-    df = pd.DataFrame(data_df)
-
-    print(df)
-
-    return df
+    return data_df

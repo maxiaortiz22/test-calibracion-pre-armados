@@ -56,7 +56,6 @@ def calibracion() -> None:
 
 def hearingLevel() -> None:
 
-    global result_hearingLevel
     global progress_label
     global root
 
@@ -85,7 +84,6 @@ def hearingLevel() -> None:
 
 def narrowBand() -> None:
 
-    global result_narrowBand
     global progress_label
     global root
 
@@ -114,7 +112,6 @@ def narrowBand() -> None:
 
 def linearityTest() -> None:
 
-    global reslut_linearityTest
     global progress_label
     global root
 
@@ -125,7 +122,7 @@ def linearityTest() -> None:
     channel_selected = channel.get()
     tests.set_channel(channel_selected)
     #nievel:
-    level = int(linearity_level.get())
+    level = linearity_level.get()
     tests.set_level(level)
     #Especifico el dispositivo de entrada:
     input_microphone = input_device.get()
@@ -135,7 +132,7 @@ def linearityTest() -> None:
     progress_label.set(f"Test de linealidad...")
     root.update_idletasks()
 
-    reslut_linearityTest = tests.get_pulse_tone()
+    tests.set_linearity_test()
 
     progress.set(1)
     progress_label.set(f"Test grabado!")
@@ -143,7 +140,6 @@ def linearityTest() -> None:
 
 def pulseTone() -> None:
 
-    global result_pulseTone
     global progress_label
     global root
 
@@ -161,7 +157,7 @@ def pulseTone() -> None:
     progress_label.set(f"Test pulse tone...")
     root.update_idletasks()
 
-    result_pulseTone = tests.get_warble_tone()
+    tests.set_pulse_tone()
 
     progress.set(1)
     progress_label.set(f"Test grabado!")
@@ -169,7 +165,6 @@ def pulseTone() -> None:
 
 def warbleTone() -> None:
 
-    global result_warbleTone
     global progress_label
     global root
 
@@ -207,7 +202,15 @@ def genInforme() -> None:
     calibracion_usada = input('Calibración utilizada: ')
     id_informe = input('ID del informe: ')
 
+    result_hearingLevel = tests.hearing_level_results
+    result_frequency_accuracy_results = tests.frequency_accuracy_results
+    result_narrowBand = tests.narrow_band_results
+    reslut_linearityTest = tests.linearity_results
+    result_pulseTone = tests.pulse_tone_results
+    result_warbleTone = tests.warble_tone_results
+
     informe.gen_informe(result_hearingLevel,
+                        result_frequency_accuracy_results,
                         result_narrowBand,
                         reslut_linearityTest,
                         result_pulseTone,

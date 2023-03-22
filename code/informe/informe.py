@@ -24,6 +24,7 @@ class PDF(FPDF):
         self.cell(0, 10, 'Página ' + str(self.page_no()) + '/{nb}', 0, 0, 'R')
 
 def gen_informe(result_hearingLevel,
+                result_frequency_accuracy_results,
                 result_narrowBand,
                 reslut_linearityTest,
                 result_pulseTone,

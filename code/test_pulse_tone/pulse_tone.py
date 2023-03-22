@@ -55,10 +55,10 @@ def get_pulse_tone(data: np.ndarray, sr: int) -> pd.DataFrame:
     second_rise_middle_left = np.where(np.flip(tono[:second_max])<=tono[second_max]*0.5)[0][0]
     second_rise_middle_left = second_max - second_rise_middle_left
 
-    print(f'Rise time: {((first_rise_max_left-first_rise_min_left)/sr)*10**3} ms')
-    print(f'Fall time: {((first_fall_min_left-first_fall_max_left)/sr)*10**3} ms')
-    print(f'On time: {((first_fall_max_left-first_rise_max_left)/sr)*10**3} ms')
-    print(f'On/Off time: {((second_rise_middle_left-first_fall_middle_left)/sr)*10**3} ms')
+    #print(f'Rise time: {((first_rise_max_left-first_rise_min_left)/sr)*10**3} ms')
+    #print(f'Fall time: {((first_fall_min_left-first_fall_max_left)/sr)*10**3} ms')
+    #print(f'On time: {((first_fall_max_left-first_rise_max_left)/sr)*10**3} ms')
+    #print(f'On/Off time: {((second_rise_middle_left-first_fall_middle_left)/sr)*10**3} ms')
 
     times = {'Rise time [ms]': np.round(((first_rise_max_left-first_rise_min_left)/sr)*10**3, 2),
              'Fall time [ms]': np.round(((first_fall_min_left-first_fall_max_left)/sr)*10**3, 2),
@@ -87,6 +87,4 @@ def get_pulse_tone(data: np.ndarray, sr: int) -> pd.DataFrame:
     
     plt.savefig('results/test_images/pulse_tone.png')
 
-    df = pd.DataFrame(data=data_)
-
-    return df
+    return times

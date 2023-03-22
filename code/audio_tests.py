@@ -47,10 +47,29 @@ class Tests():
         self.pulse_tone_results = {"Izquierdo": {'Rise time': np.nan, 'Fall time': np.nan, 'On time': np.nan, 'On/Off time': np.nan},
                                    "Derecho": {'Rise time': np.nan, 'Fall time': np.nan, 'On time': np.nan, 'On/Off time': np.nan}}
 
-        self.warble_tone_results = {"Izquierdo": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
-                                    "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan},
-                                    "Derecho": {"125": np.nan, "250": np.nan, "500": np.nan, "750": np.nan, "1000": np.nan, "1500": np.nan,
-                                    "2000": np.nan, "3000": np.nan, "4000": np.nan, "6000": np.nan, "8000": np.nan}}
+        self.warble_tone_results = {"Izquierdo": {"125":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "250":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "500":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "750":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "1000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "1500": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan},
+                                                  "2000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "3000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "4000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "6000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "8000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}},
+                                                  
+                                    "Derecho":   {"125":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "250":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "500":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "750":  {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "1000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "1500": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan},
+                                                  "2000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "3000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "4000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "6000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}, 
+                                                  "8000": {'Carrier frequency [Hz]': np.nan, 'Modulating frequency [Hz]': np.nan}}}
 
     def set_auricular(self, auricular: str) -> None:
         self.auricular = auricular
@@ -267,167 +286,66 @@ class Tests():
         self.narrow_band_results[self.channel][str(self.freq)] = nb_value
 
         print(self.narrow_band_results)
-
-    ########## FUNCIONES VIEJAS ##########
-
-    def get_linealidad_aerea(self):
-        
-        #AGREGAR UN TIEMPO DE ESPERA ENTRE FRECUENCIA Y FRECUENCIA EN ESTE ESTUDIO TAMBIÉN!
-        record_seconds: int = 9*2 #[pasos]*[segundos]
-
-        data = np.array([])
-
-        for freq in self.freqs_auri:
-            print(f'Frecuencia a grabar: {freq} Hz')
-            data_aux = self.record(RECORD_SECONDS=record_seconds, CHANNELS=1)
-            print(f'Se grabaron {len(data_aux)} muestras en esta iteración')
-
-            print(f'Grabado {freq} Hz')
-            data = np.append(data, data_aux)
-            print(f'Se acumularon {len(data)} muestras')
-
-        result = linealidad.linealidad_aerea(self.cal, data, self.sr, self.auricular)
-
-        return result
-
-        
-    def get_linealidad_osea(self):
-
-        record_seconds: int = 9*2 #[pasos]*[segundos]
-
-        data = np.array([])
-
-        for freq in self.freqs_osea:
-            print(f'Frecuencia a grabar: {freq} Hz')
-            data_aux = self.record(RECORD_SECONDS=record_seconds, CHANNELS=1)
-            print(f'Se grabaron {len(data_aux)} muestras en esta iteración')
-
-            print(f'Grabado {freq} Hz')
-            data = np.append(data, data_aux)
-            print(f'Se acumularon {len(data)} muestras')
-
-        result = linealidad.linealidad_osea(self.cal, data, self.sr)
-
-        return result
     
-    def get_pulse_tone(self) -> pd.DataFrame:
+    def set_linearity_test(self) -> None:
+        
+        record_seconds = 2
+        print(f'Grabación de oído {self.channel}, en 1000 Hz a {self.level}')
+
+        data = self.record(RECORD_SECONDS=record_seconds, CHANNELS=self.tot_channels)
+
+        #Me quedo solo con el canal seleccionado:
+        data = self.split_channels(data)
+
+        #Obtengo el resultado de linearity test:
+        cal = self.get_calibration()
+        linearity_value = linearity.linearity_level_value(cal, data, self.auricular)
+
+        #Guardo resultados en el diccionario correspondiente:
+        self.linearity_results[self.channel][self.level] = linearity_value
+
+        print(self.linearity_results)
+    
+    def set_pulse_tone(self) -> None:
 
         record_seconds = 5
+        print(f'Grabación de oído {self.channel}.')
 
-        print(f'Esperando para grabar tono pulsante...')
-        data = self.record(RECORD_SECONDS=record_seconds, CHANNELS=1)
-        print(f'Tono grabado!')
+        data = self.record(RECORD_SECONDS=record_seconds, CHANNELS=self.tot_channels)
 
-        result = pulse_tone.get_pulse_tone(data, self.sr)
+        #Me quedo solo con el canal seleccionado:
+        data = self.split_channels(data)
 
-        print('Tiempos calculados!')
+        #Obtengo el resultado de linearity test:
+        pt_value = pulse_tone.get_pulse_tone(data, self.sr)
 
-        return result
+        #Guardo resultados en el diccionario correspondiente:
+        # {'Rise time': np.nan, 'Fall time': np.nan, 'On time': np.nan, 'On/Off time': np.nan}
+        self.pulse_tone_results[self.channel]['Rise time'] = pt_value['Rise time [ms]']
+        self.pulse_tone_results[self.channel]['Fall time'] = pt_value['Fall time [ms]']
+        self.pulse_tone_results[self.channel]['On time'] = pt_value['On time [ms]']
+        self.pulse_tone_results[self.channel]['On/Off time'] = pt_value['On/Off time [ms]']
 
-    def get_rta_frec(self):
-        #Ver cómo realizar el cambio de la placa al ears!!!
-        #https://python-sounddevice.readthedocs.io/en/0.3.7/#:~:text=On%20a%20GNU,in%2C%2016%20out)
+        print(self.pulse_tone_results)
 
-        print('Grabando data:')
-
-        rta_frec.get_rta_frec(f_inf=20, f_sup=20000, T=5, Fs=self.sr, A=1, P=3)
-
-        print('Gráfico guardado: results/test_images/rta_frec.png')
-
-    def get_ruido(self):
-
-        noise_types = ['Ruido blanco', 'Ruido vocal', 'NBN 1kHz']
-        record_seconds = 10
-
-        data = []
-
-        for noise in noise_types:
-            print(f'Grabar {record_seconds} segundos de {noise} a 60 dBHL')
-            data_aux = self.record(RECORD_SECONDS=record_seconds, CHANNELS=1)
-            
-            print(f'{noise} grabado!')
-            
-            data.append(data_aux)
-
-            time.sleep(10)
-        
-        result = ruido.get_ruido(data, self.cal[4], self.sr, self.auricular)
-
-        return result
-
-    def get_warble_tone(self):
+    def set_warble_tone(self) -> None:
 
         record_seconds = 2
-        data = []
+        print(f'Grabación de oído {self.channel} y frecuencia {self.freq} Hz')
 
-        for freq in self.freqs_auri:
-            print(f'Esperando: warble tone {freq} Hz a 60 dBHL')
-            data_aux = self.record(RECORD_SECONDS=record_seconds, CHANNELS=1)
-            
-            print('Tono grabado!')
-            
-            data.append(data_aux)
+        data = self.record(RECORD_SECONDS=record_seconds, CHANNELS=self.tot_channels)
 
-            time.sleep(5)
-        
-        result = warble_tone.get_frec_mod(data, self.sr)
+        #Me quedo solo con el canal seleccionado:
+        data = self.split_channels(data)
 
-        return result
-    
-    def get_nivel_vocal(self):
-        
-        record_seconds = 40
-        data = []
+        #Obtengo el resultado de hearing level:
+        cal = self.get_calibration()
+        wt_value = hearing_level.hearing_level_value(cal, data, self.freq, self.auricular)
 
-        listas =['Dr. Tato adultos', 'Dr. Tato niños', "SRT E IRF (masculino)", 
-                 'SRT E IRF (femenino)', 'Audicom']
+        #Guardo resultados en el diccionario correspondiente:
+        self.warble_tone_results[self.channel][str(self.freq)] = wt_value
 
-        for lista in listas:
-            print(f'Esperando: lista {lista} a 85 dBHL')
-            data_aux = self.record(RECORD_SECONDS=record_seconds, CHANNELS=1)
-            
-            print('Lista grabada!')
-            
-            data.append(data_aux)
-
-            time.sleep(30)
-        
-        result = nivel_vocal.get_nivel_vocal(data, self.cal[4])
-
-        return result
-    
-    def get_on_off_time(self):
-
-        record_seconds = 7
-
-        print(f'Se grabaran {record_seconds} s de audio, en este tiempo tiene que encender y apagar el tono en 60 dBHL')
-
-        myrecording = sd.rec(int(record_seconds * self.sr), samplerate=self.sr,
-                        channels=1, blocking=True, dtype='float32') 
-        sd.wait()
-
-        myrecording = myrecording.flatten()
-
-        return on_off.get_on_off_time(myrecording, self.sr)
-
-    def RMS(self, y):
-        """ Calcula el valor RMS de una señal """
-        return np.sqrt(np.mean(y**2))
-
-    def RMS_cal(self, y, nivel_dBHL, comp):
-        """ Calcula el valor RMS de una señal de calibración de cualquier nivel y lo paso a 94 dBSPL,
-            lo que equivale a 1 Pa """
-
-        rms = np.sqrt(np.mean(y**2)) #Obento el RMS al nivel que fue grabado
-
-        rms_1Pa = rms / (20*10**(-6) * 10**((nivel_dBHL+comp)/20)) #Paso le RMS a 1 Pa
-        
-        return rms_1Pa
-
-    def is_silent(self, snd_data):
-        "Returns 'True' if below the 'silent' threshold"
-        return max(snd_data) < self.THRESHOLD
-
+        print(self.warble_tone_results)
 
     def record(self, RECORD_SECONDS, CHANNELS):
         """
