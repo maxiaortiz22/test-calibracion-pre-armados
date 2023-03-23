@@ -1,8 +1,5 @@
 import numpy as np
-from sys import byteorder
-from array import array
 import numpy as np
-import pyaudio
 import sounddevice as sd
 from .test_hearing_level import hearing_level
 from .test_frequency_accuracy import frequency_accuracy
@@ -11,7 +8,6 @@ from .test_linearity import linearity
 from .test_pulse_tone import pulse_tone
 from .test_warble_tone import warble_tone
 import time
-import pandas as pd
 
 class Tests():
     def __init__(self, sr):

@@ -252,7 +252,6 @@ if __name__ == '__main__':
     recomendacion_entrada.grid(row=0, column=0, pady=5, padx=10)
     input_device = customtkinter.CTkOptionMenu(root, values=input_devices)
     input_device.grid(row=1, column=0, pady=5, padx=10)
-    #tipo_auricular.set("Supraural (ej: JBL600)")
 
     recomendacion0 = customtkinter.CTkLabel(root, text='Seleccione el tipo de auricular:')
     recomendacion0.grid(row=0, column=1, pady=5, padx=10)
