@@ -2,8 +2,7 @@ from scipy.fft import rfft, rfftfreq
 import numpy as np
 from scipy.signal import find_peaks
 from statistics import mode
-import pandas as pd
-from .filtros import BandpassFilter
+from scipy.signal import butter, sosfilt
 
 class FcError(Exception):
     def __init__(self, *args):
@@ -18,41 +17,46 @@ class FcError(Exception):
         else:
             return 'FcError: no se encontró la frecuencia de mensaje'
 
-def get_frec_mod(data: list[np.ndarray], fs: float) -> pd.DataFrame:
+def filtered_signals(data: np.ndarray, band: int, fs: float) -> np.ndarray:
 
-    frecs = [125, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000]
-    fc, fm = [], []
+    order = 4
 
-    bpfilter = BandpassFilter('octave band', fs, 10, frecs) #Instancio la clase de los filtros
+    lowcut = band/np.sqrt(2) #Frecuencia de corte inferior bandas de octava
+    highcut = band*np.sqrt(2) #Frecuencia de corte  superior bandas de octava
 
-    filtered_data = bpfilter.filtered_signals(data)
+    sos = butter(order, [lowcut, highcut], fs=fs, btype='bandpass', output='sos')
 
-    assert(len(filtered_data) == len(frecs))
+    filtered_audio = sosfilt(sos, data)
 
-    for i, audio in enumerate(filtered_data):
+    return filtered_audio
 
-        audio = audio / np.max(np.abs(audio))
-        
-        N = len(audio)
-        yf = np.array(rfft(audio))
-        xf = rfftfreq(N, 1 / fs)
+def get_frec_mod(data: np.ndarray, freq: int, fs: float) -> dict[str, float]:
 
-        yf = 20 * np.log10(np.abs(yf) / np.max(np.abs(yf)))
+    fc, fm = 0, 0
 
-        local_max_idx, _ = find_peaks(yf, height=-30) #Revisar el valor de height
+    filtered_data = filtered_signals(data, freq, fs)
 
-        xf_max_list = [xf[i] for i in local_max_idx]
+    audio = filtered_data / np.max(np.abs(filtered_data))
+    
+    N = len(audio)
+    yf = np.array(rfft(audio))
+    xf = rfftfreq(N, 1 / fs)
 
-        fm_calc = []
-        for t in range(len(xf_max_list)-1):
-            fm_calc.append(xf_max_list[t+1]-xf_max_list[t])
+    yf = 20 * np.log10(np.abs(yf) / np.max(np.abs(yf)))
 
-        fm_calc = mode(fm_calc) #Me quedo con el valor que más se repita, esperando que este sea el correcto!
+    local_max_idx, _ = find_peaks(yf, height=-30) #Revisar el valor de height
 
-        fc.append(frecs[i])
-        fm.append(fm_calc)
+    xf_max_list = [xf[i] for i in local_max_idx]
 
-    data_df = {'Carrier frequency [Hz]': fc,
-               'Modulating frequency [Hz]': fm}
+    fm_calc = []
+    for t in range(len(xf_max_list)-1):
+        fm_calc.append(xf_max_list[t+1]-xf_max_list[t])
 
-    return data_df
+    fm = mode(fm_calc) #Me quedo con el valor que más se repita, esperando que este sea el correcto!
+
+    fc = freq
+
+    data = {'Carrier frequency [Hz]': fc,
+            'Modulating frequency [Hz]': fm}
+
+    return data

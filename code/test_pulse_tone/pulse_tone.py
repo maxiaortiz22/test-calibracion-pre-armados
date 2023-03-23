@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import hilbert, find_peaks
 import pandas as pd
 
-def get_pulse_tone(data: np.ndarray, sr: int) -> pd.DataFrame:
+def get_pulse_tone(data: np.ndarray, sr: int) -> dict[str, float]:
     #Genero el test:
 
     data = data/np.max(np.abs(data))

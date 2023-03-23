@@ -86,7 +86,7 @@ class Tests():
     def set_freq(self, freq: int) -> None:
         self.freq = freq
 
-    def get_freq(self) -> str:
+    def get_freq(self) -> int:
         return self.freq
     
     def set_level(self, level: str) -> None:
@@ -338,12 +338,12 @@ class Tests():
         #Me quedo solo con el canal seleccionado:
         data = self.split_channels(data)
 
-        #Obtengo el resultado de hearing level:
-        cal = self.get_calibration()
-        wt_value = hearing_level.hearing_level_value(cal, data, self.freq, self.auricular)
+        #Obtengo el resultado de warble tone:
+        wt_value = warble_tone.get_frec_mod(data, self.freq, self.sr)
 
         #Guardo resultados en el diccionario correspondiente:
-        self.warble_tone_results[self.channel][str(self.freq)] = wt_value
+        self.warble_tone_results[self.channel][str(self.freq)]['Carrier frequency [Hz]'] = wt_value['Carrier frequency [Hz]']
+        self.warble_tone_results[self.channel][str(self.freq)]['Modulating frequency [Hz]'] = wt_value['Modulating frequency [Hz]']
 
         print(self.warble_tone_results)
 

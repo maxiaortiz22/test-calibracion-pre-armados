@@ -185,7 +185,7 @@ def warbleTone() -> None:
     progress_label.set(f"Test warble tone...")
     root.update_idletasks()
 
-    result_warbleTone = tests.get_nivel_vocal()
+    tests.set_warble_tone()
 
     progress.set(1)
     progress_label.set(f"Test grabado!")
