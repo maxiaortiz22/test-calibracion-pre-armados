@@ -1,5 +1,6 @@
 from fpdf import FPDF
 import datetime
+import pandas as pd
 
 class PDF(FPDF):
     def header(self):
@@ -34,6 +35,75 @@ def gen_informe(result_hearingLevel,
                 calibracion_usada,
                 id_informe):
 
+    #Genero los cambios en la data para poder volcarlo en el informe:
+
+    #Filtro hearing level:
+    hl_left = result_hearingLevel['Izquierdo']
+    hl_right = result_hearingLevel['Derecho']
+
+    hl_left_df = pd.DataFrame({'Frecuencia [Hz]': list(hl_left.keys()),
+                               'Nivel [dBHL]': [hl_left[key] for key in hl_left.keys()]})
+    
+    hl_right_df = pd.DataFrame({'Frecuencia [Hz]': list(hl_right.keys()),
+                               'Nivel [dBHL]': [hl_right[key] for key in hl_right.keys()]})
+    
+    #Filtro frequency accuracy:
+    fa_left = result_frequency_accuracy_results['Izquierdo']
+    fa_right = result_frequency_accuracy_results['Derecho']
+
+    fa_left_df = pd.DataFrame({'Frecuencia [Hz]': list(fa_left.keys()),
+                               'Medición [Hz]': [fa_left[key] for key in fa_left.keys()]})
+    
+    fa_right_df = pd.DataFrame({'Frecuencia [Hz]': list(fa_right.keys()),
+                               'Medición [Hz]': [fa_right[key] for key in fa_right.keys()]})
+    
+    #Filtro narrow band:
+    nb_left = result_narrowBand['Izquierdo']
+    nb_right = result_narrowBand['Derecho']
+
+    nb_left_df = pd.DataFrame({'Frecuencia [Hz]': list(nb_left.keys()),
+                               'Nivel [dBHL]': [nb_left[key] for key in nb_left.keys()]})
+    
+    nb_right_df = pd.DataFrame({'Frecuencia [Hz]': list(nb_right.keys()),
+                               'Nivel [dBHL]': [nb_right[key] for key in nb_right.keys()]})
+    
+    #Filtro linearity:
+    ln_left = reslut_linearityTest['Izquierdo']
+    ln_right = reslut_linearityTest['Derecho']
+
+    ln_left_df = pd.DataFrame({'Nivel esperado [dBHL]': list(ln_left.keys()),
+                               'Medición [dBHL]': [ln_left[key] for key in ln_left.keys()]})
+    
+    ln_right_df = pd.DataFrame({'Nivel esperado [dBHL]': list(ln_right.keys()),
+                               'Medición [dBHL]': [ln_right[key] for key in ln_right.keys()]})
+    
+    #Filtro pulse tone:
+    pt_left = result_pulseTone['Izquierdo']
+    pt_right = result_pulseTone['Derecho']
+
+    pt_left_df = pd.DataFrame({'Tiempo': list(pt_left.keys()),
+                               'Medición [ms]': [pt_left[key] for key in pt_left.keys()]})
+    
+    pt_right_df = pd.DataFrame({'Tiempo': list(pt_right.keys()),
+                               'Medición [ms]': [pt_right[key] for key in pt_right.keys()]})
+    
+    #Filtro warble tone:
+    wt_left = result_warbleTone['Izquierdo']
+    wt_right = result_warbleTone['Derecho']
+
+    wt_left_df = pd.DataFrame({'Frecuencia [Hz]': list(wt_left.keys()),
+                               'Carrier frequency [Hz]': [wt_left[key]['Carrier frequency [Hz]'] for key in wt_left.keys()],
+                               'Modulating frequency [Hz]': [wt_left[key]['Modulating frequency [Hz]'] for key in wt_left.keys()]})
+    
+    wt_right_df = pd.DataFrame({'Frecuencia [Hz]': list(wt_right.keys()),
+                                'Carrier frequency [Hz]': [wt_right[key]['Carrier frequency [Hz]'] for key in wt_right.keys()],
+                                'Modulating frequency [Hz]': [wt_right[key]['Modulating frequency [Hz]'] for key in wt_right.keys()]})
+
+    
+    #Filtro 
+
+    # Inicio el informe:
+
     # Instantiation of inherited class
     pdf = PDF()
     pdf.alias_nb_pages()
@@ -52,23 +122,27 @@ def gen_informe(result_hearingLevel,
 
     pdf.cell(0, 5, '', 0, 1, 'L')
 
-    #Test linealidad aérea:
+    #Test hearing level:
     pdf.set_font('Times', 'U', 14)
-    pdf.cell(0, 5, f'Test de linealidad aérea:', 0, 1, 'L')
+    pdf.cell(0, 5, f'Test de hearing level:', 0, 1, 'L')
     pdf.set_font('Times', '', 12)
     pdf.cell(0, 5, '', 0, 1, 'L')
 
     pdf.multi_cell(w=0, h=5, 
-                   txt='En este test se busca encontrar la linealidad del test aéreo de 60 a 20 dBHL en todas sus ' + 
-                       'frecuencias a pasos de 5 dBHL.',
+                   txt='En este test se busca corroborar la calibración del test aéreo en todas sus ' + 
+                       'frecuencias a 60 dBHL.',
                    border=0, fill=False, align='J')
     pdf.cell(0, 5, '', 0, 1, 'L')
 
-    w_firt_col = 17
-    w = 17
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, f'Izquierdo', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    w_firt_col = 43
+    w = 43
     h = 7
 
-    columnNameList = list(result_linealidad_aerea.columns)
+    columnNameList = list(hl_left_df.columns)
     totColumns = len(columnNameList)
 
     w_len = w_firt_col + w*(totColumns-2)
@@ -86,38 +160,23 @@ def gen_informe(result_hearingLevel,
     pdf.set_font('arial', '', 11)
 
     i=0
-    for row in range(0, len(result_linealidad_aerea)):
+    for row in range(0, len(hl_left_df)):
         for col_num, col_name in enumerate(columnNameList):
             if col_num != len(columnNameList)-1:
                 if col_num==0:
-                    pdf.cell(w_firt_col,h, str(result_linealidad_aerea['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w_firt_col,h, str(hl_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
                 else:
-                    pdf.cell(w,h, str(result_linealidad_aerea['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w,h, str(hl_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
             else:
-                pdf.cell(w,h, str(result_linealidad_aerea['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(w,h, str(hl_left_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
                 pdf.cell(-1*(w_len))
 
-    pdf.cell(90, 5, ' ', 0, 2, 'C')
-
-    #Test linealidad ósea:
-    pdf.add_page()
-
-    pdf.set_font('Times', 'U', 14)
-    pdf.cell(0, 5, f'Test de linealidad ósea:', 0, 1, 'L')
-    pdf.set_font('Times', '', 12)
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+    pdf.cell(0, 5, f'Derecho', 0, 1, 'C')
     pdf.cell(0, 5, '', 0, 1, 'L')
 
-    pdf.multi_cell(w=0, h=5, 
-                   txt='En este test se busca encontrar la linealidad del test óseo de 30 a -10 dBHL, en todas sus ' + 
-                       'frecuencias a pasos de 5 dBHL.',
-                   border=0, fill=False, align='J')
-    pdf.cell(0, 5, '', 0, 1, 'L')
-
-    w_firt_col = 17
-    w = 17
-    h = 7
-
-    columnNameList = list(result_linealidad_osea.columns)
+    columnNameList = list(hl_right_df.columns)
     totColumns = len(columnNameList)
 
     w_len = w_firt_col + w*(totColumns-2)
@@ -135,24 +194,284 @@ def gen_informe(result_hearingLevel,
     pdf.set_font('arial', '', 11)
 
     i=0
-    for row in range(0, len(result_linealidad_osea)):
+    for row in range(0, len(hl_right_df)):
         for col_num, col_name in enumerate(columnNameList):
             if col_num != len(columnNameList)-1:
                 if col_num==0:
-                    pdf.cell(w_firt_col,h, str(result_linealidad_osea['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w_firt_col,h, str(hl_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
                 else:
-                    pdf.cell(w,h, str(result_linealidad_osea['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w,h, str(hl_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
             else:
-                pdf.cell(w,h, str(result_linealidad_osea['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(w,h, str(hl_right_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
                 pdf.cell(-1*(w_len))
-
+    
     pdf.cell(90, 5, ' ', 0, 2, 'C')
 
-    #Test de tono pulsante
+    #Test frequency accuracy:
     pdf.add_page()
 
     pdf.set_font('Times', 'U', 14)
-    pdf.cell(0, 5, f'Test de tono pulsante:', 0, 1, 'L')
+    pdf.cell(0, 5, f'Test de precisión de frecuencia:', 0, 1, 'L')
+    pdf.set_font('Times', '', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    pdf.multi_cell(w=0, h=5, 
+                   txt='En este test se busca encontrar la precisión de la frecuencia de ' + 
+                       'los tonos emitidos.',
+                   border=0, fill=False, align='J')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, f'Izquierdo', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    w_firt_col = 43
+    w = 43
+    h = 7
+
+    columnNameList = list(fa_left_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(fa_left_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(fa_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(fa_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(fa_left_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+    pdf.cell(0, 5, f'Derecho', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    columnNameList = list(fa_right_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(fa_right_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(fa_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(fa_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(fa_right_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+    
+    pdf.cell(90, 5, ' ', 0, 2, 'C')
+
+    #Test de narrow band:
+    pdf.add_page()
+
+    pdf.set_font('Times', 'U', 14)
+    pdf.cell(0, 5, f'Test de narrow band:', 0, 1, 'L')
+    pdf.set_font('Times', '', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    pdf.multi_cell(w=0, h=5, 
+                   txt='En este test se busca corroborar la calibración del narrow band noise para todas las frecuencias.',
+                   border=0, fill=False, align='J')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, f'Izquierdo', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    w_firt_col = 43
+    w = 43
+    h = 7
+
+    columnNameList = list(nb_left_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(nb_left_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(nb_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(nb_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(nb_left_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+    pdf.cell(0, 5, f'Derecho', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    columnNameList = list(nb_right_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(nb_right_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(nb_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(nb_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(nb_right_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+    
+    pdf.cell(90, 5, ' ', 0, 2, 'C')
+
+
+    #Test de linealidad:
+    pdf.add_page()
+
+    pdf.set_font('Times', 'U', 14)
+    pdf.cell(0, 5, f'Test de linealidad:', 0, 1, 'L')
+    pdf.set_font('Times', '', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    pdf.multi_cell(w=0, h=5, 
+                   txt='En este test se busca evaluar la linealidad del audiómetro para la frecuencia de 1000 Hz:',
+                   border=0, fill=False, align='J')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, f'Izquierdo', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    w_firt_col = 43
+    w = 43
+    h = 7
+
+    columnNameList = list(ln_left_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(ln_left_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(ln_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(ln_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(ln_left_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+    pdf.cell(0, 5, f'Derecho', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    columnNameList = list(ln_right_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(ln_right_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(ln_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(ln_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(ln_right_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+    
+    pdf.cell(90, 5, ' ', 0, 2, 'C')
+
+    #Test de pulse tone:
+    pdf.add_page()
+
+    pdf.set_font('Times', 'U', 14)
+    pdf.cell(0, 5, f'Test de tono pulsante', 0, 1, 'L')
     pdf.set_font('Times', '', 12)
     pdf.cell(0, 5, '', 0, 1, 'L')
 
@@ -162,11 +481,15 @@ def gen_informe(result_hearingLevel,
                    border=0, fill=False, align='J')
     pdf.cell(0, 5, '', 0, 1, 'L')
 
-    w_firt_col = 25
-    w = 25
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, f'Izquierdo', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    w_firt_col = 43
+    w = 43
     h = 7
 
-    columnNameList = list(reslut_tono_pulsante.columns)
+    columnNameList = list(pt_left_df.columns)
     totColumns = len(columnNameList)
 
     w_len = w_firt_col + w*(totColumns-2)
@@ -184,185 +507,60 @@ def gen_informe(result_hearingLevel,
     pdf.set_font('arial', '', 11)
 
     i=0
-    for row in range(0, len(reslut_tono_pulsante)):
+    for row in range(0, len(pt_left_df)):
         for col_num, col_name in enumerate(columnNameList):
             if col_num != len(columnNameList)-1:
                 if col_num==0:
-                    pdf.cell(w_firt_col,h, str(reslut_tono_pulsante['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w_firt_col,h, str(pt_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
                 else:
-                    pdf.cell(w,h, str(reslut_tono_pulsante['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w,h, str(pt_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
             else:
-                pdf.cell(w,h, str(reslut_tono_pulsante['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(w,h, str(pt_left_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
                 pdf.cell(-1*(w_len))
 
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+    pdf.cell(0, 5, f'Derecho', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    columnNameList = list(pt_right_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(pt_right_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(pt_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(pt_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(pt_right_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+    
     pdf.cell(90, 5, ' ', 0, 2, 'C')
 
     pdf.image('results/test_images/pulse_tone.png', x=None, y=None, w=0, h=0, type='', link='')
 
-    #Test de nivel vocal:
+    #Test de warble tone:
     pdf.add_page()
 
     pdf.set_font('Times', 'U', 14)
-    pdf.cell(0, 5, f'Test de nivel vocal:', 0, 1, 'L')
-    pdf.set_font('Times', '', 12)
-    pdf.cell(0, 5, '', 0, 1, 'L')
-
-    pdf.multi_cell(w=0, h=5, 
-                   txt='Para este test se grabaran a 85 dBHL el conjunto de palabras sin silencio de las listas:\n\n' + 
-                       '    * Dr. Tato adultos\n    * Dr. Tato niños\n    * SRT E IRF (masculino)\n' +
-                       '    * SRT E IRF (femenino)\n    * Audicom',
-                   border=0, fill=False, align='J')
-    pdf.cell(0, 5, '', 0, 1, 'L')
-
-    w_firt_col = 43
-    w = 40
-    h = 7
-
-    columnNameList = list(result_nivel_vocal.columns)
-    totColumns = len(columnNameList)
-
-    w_len = w_firt_col + w*(totColumns-2)
-
-    i=0
-    for header in columnNameList[:-1]:
-        if i%totColumns == 0:
-            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
-            i+=1
-        else:
-            pdf.cell(w, h, header, 1, 0, 'C')
-            i+=1
-    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
-    pdf.cell(-1*(w_len))
-    pdf.set_font('arial', '', 11)
-
-    i=0
-    for row in range(0, len(result_nivel_vocal)):
-        for col_num, col_name in enumerate(columnNameList):
-            if col_num != len(columnNameList)-1:
-                if col_num==0:
-                    pdf.cell(w_firt_col,h, str(result_nivel_vocal['%s' % (col_name)].iloc[row]), 1, 0, 'C')
-                else:
-                    pdf.cell(w,h, str(result_nivel_vocal['%s' % (col_name)].iloc[row]), 1, 0, 'C')
-            else:
-                pdf.cell(w,h, str(result_nivel_vocal['%s' % (col_name)].iloc[row]), 1, 2, 'C')
-                pdf.cell(-1*(w_len))
-
-    pdf.cell(90, 5, ' ', 0, 2, 'C')
-
-    #Test de encendido/apagado:
-    pdf.add_page()
-
-    pdf.set_font('Times', 'U', 14)
-    pdf.cell(0, 5, f'Test de encendido/apagado del tono', 0, 1, 'L')
-    pdf.set_font('Times', '', 12)
-    pdf.cell(0, 5, '', 0, 1, 'L')
-
-    pdf.multi_cell(w=0, h=5, 
-                   txt='Para este test se busca encontrar los tiempos de encendido y apagado al reproducir un tono con ' + 
-                       'el test de aéreo.',
-                   border=0, fill=False, align='J')
-    pdf.cell(0, 5, '', 0, 1, 'L')
-
-    w_firt_col = 25
-    w = 25
-    h = 7
-
-    columnNameList = list(result_on_off.columns)
-    totColumns = len(columnNameList)
-
-    w_len = w_firt_col + w*(totColumns-2)
-
-    i=0
-    for header in columnNameList[:-1]:
-        if i%totColumns == 0:
-            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
-            i+=1
-        else:
-            pdf.cell(w, h, header, 1, 0, 'C')
-            i+=1
-    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
-    pdf.cell(-1*(w_len))
-    pdf.set_font('arial', '', 11)
-
-    i=0
-    for row in range(0, len(result_on_off)):
-        for col_num, col_name in enumerate(columnNameList):
-            if col_num != len(columnNameList)-1:
-                if col_num==0:
-                    pdf.cell(w_firt_col,h, str(result_on_off['%s' % (col_name)].iloc[row]), 1, 0, 'C')
-                else:
-                    pdf.cell(w,h, str(result_on_off['%s' % (col_name)].iloc[row]), 1, 0, 'C')
-            else:
-                pdf.cell(w,h, str(result_on_off['%s' % (col_name)].iloc[row]), 1, 2, 'C')
-                pdf.cell(-1*(w_len))
-
-    pdf.cell(90, 5, ' ', 0, 2, 'C')
-
-    pdf.image('results/test_images/on_off_tono.png', x=None, y=None, w=0, h=0, type='', link='')
-
-    #Test de ruido:
-    pdf.add_page()
-
-    pdf.set_font('Times', 'U', 14)
-    pdf.cell(0, 5, f'Test de ruido:', 0, 1, 'L')
-    pdf.set_font('Times', '', 12)
-    pdf.cell(0, 5, '', 0, 1, 'L')
-
-    pdf.multi_cell(w=0, h=5, 
-                   txt='Para este test se graban a 60 dBHL 3 tipos de ruido: Blanco, Vocal y NBN a 1kHz. ' + 
-                       'Para su representación, se observa una tabla con los valores obtenidos y la ' +
-                       'respuesta en frecuencia de cada uno.',
-                   border=0, fill=False, align='J')
-    pdf.cell(0, 5, '', 0, 1, 'L')
-
-    w_firt_col = 30
-    w = 30
-    h = 7
-
-    columnNameList = list(result_ruido.columns)
-    totColumns = len(columnNameList)
-
-    w_len = w_firt_col + w*(totColumns-2)
-
-    i=0
-    for header in columnNameList[:-1]:
-        if i%totColumns == 0:
-            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
-            i+=1
-        else:
-            pdf.cell(w, h, header, 1, 0, 'C')
-            i+=1
-    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
-    pdf.cell(-1*(w_len))
-    pdf.set_font('arial', '', 11)
-
-    i=0
-    for row in range(0, len(result_ruido)):
-        for col_num, col_name in enumerate(columnNameList):
-            if col_num != len(columnNameList)-1:
-                if col_num==0:
-                    pdf.cell(w_firt_col,h, str(result_ruido['%s' % (col_name)].iloc[row]), 1, 0, 'C')
-                else:
-                    pdf.cell(w,h, str(result_ruido['%s' % (col_name)].iloc[row]), 1, 0, 'C')
-            else:
-                pdf.cell(w,h, str(result_ruido['%s' % (col_name)].iloc[row]), 1, 2, 'C')
-                pdf.cell(-1*(w_len))
-
-    pdf.cell(90, 5, ' ', 0, 2, 'C')
-
-    pdf.image('results/test_images/Ruido blanco.png', x=None, y=None, w=0, h=0, type='', link='')
-    pdf.cell(90, 5, ' ', 0, 2, 'C')
-
-    pdf.image('results/test_images/Ruido vocal.png', x=None, y=None, w=0, h=0, type='', link='')
-    pdf.cell(90, 5, ' ', 0, 2, 'C')
-
-    pdf.image('results/test_images/NBN 1kHz.png', x=None, y=None, w=0, h=0, type='', link='')
-
-    #Test de Warble tone:
-    pdf.add_page()
-
-    pdf.set_font('Times', 'U', 14)
-    pdf.cell(0, 5, f'Test de warble Tone:', 0, 1, 'L')
+    pdf.cell(0, 5, f'Test de tono modulado:', 0, 1, 'L')
     pdf.set_font('Times', '', 12)
     pdf.cell(0, 5, '', 0, 1, 'L')
 
@@ -371,11 +569,15 @@ def gen_informe(result_hearingLevel,
                    border=0, fill=False, align='J')
     pdf.cell(0, 5, '', 0, 1, 'L')
 
-    w_firt_col = 51
-    w = 51
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, f'Izquierdo', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    w_firt_col = 43
+    w = 49
     h = 7
 
-    columnNameList = list(result_warble_tone.columns)
+    columnNameList = list(wt_left_df.columns)
     totColumns = len(columnNameList)
 
     w_len = w_firt_col + w*(totColumns-2)
@@ -393,15 +595,51 @@ def gen_informe(result_hearingLevel,
     pdf.set_font('arial', '', 11)
 
     i=0
-    for row in range(0, len(result_warble_tone)):
+    for row in range(0, len(wt_left_df)):
         for col_num, col_name in enumerate(columnNameList):
             if col_num != len(columnNameList)-1:
                 if col_num==0:
-                    pdf.cell(w_firt_col,h, str(result_warble_tone['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w_firt_col,h, str(wt_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
                 else:
-                    pdf.cell(w,h, str(result_warble_tone['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                    pdf.cell(w,h, str(wt_left_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
             else:
-                pdf.cell(w,h, str(result_warble_tone['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(w,h, str(wt_left_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
                 pdf.cell(-1*(w_len))
 
-    pdf.output(name=f'results/Informe de calidad de Audio {id_informe}.pdf')
+    pdf.set_font('Times', 'U', 12)
+    pdf.cell(0, 5, '', 0, 1, 'L')
+    pdf.cell(0, 5, f'Derecho', 0, 1, 'C')
+    pdf.cell(0, 5, '', 0, 1, 'L')
+
+    columnNameList = list(wt_right_df.columns)
+    totColumns = len(columnNameList)
+
+    w_len = w_firt_col + w*(totColumns-2)
+
+    i=0
+    for header in columnNameList[:-1]:
+        if i%totColumns == 0:
+            pdf.cell(w_firt_col, h, header, 1, 0, 'C')
+            i+=1
+        else:
+            pdf.cell(w, h, header, 1, 0, 'C')
+            i+=1
+    pdf.cell(w, h, columnNameList[-1], 1, 2, 'C')
+    pdf.cell(-1*(w_len))
+    pdf.set_font('arial', '', 11)
+
+    i=0
+    for row in range(0, len(wt_right_df)):
+        for col_num, col_name in enumerate(columnNameList):
+            if col_num != len(columnNameList)-1:
+                if col_num==0:
+                    pdf.cell(w_firt_col,h, str(wt_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+                else:
+                    pdf.cell(w,h, str(wt_right_df['%s' % (col_name)].iloc[row]), 1, 0, 'C')
+            else:
+                pdf.cell(w,h, str(wt_right_df['%s' % (col_name)].iloc[row]), 1, 2, 'C')
+                pdf.cell(-1*(w_len))
+    
+    pdf.cell(90, 5, ' ', 0, 2, 'C')
+
+    pdf.output(name=f'results/Informe de calibración de Audio {id_informe}.pdf')
